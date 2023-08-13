@@ -39,7 +39,8 @@ func (userHandler *userhandlerImpl) RegisterUser(ctx *gin.Context){
 		return
 	}
 
-	response := helper.ApiResponse("Account has been registered", http.StatusOK, "success", register)
+	// response dari helper
+	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", register)
 	
 	ctx.JSON(http.StatusOK, response)
 }
@@ -60,11 +61,19 @@ func (userHandler *userhandlerImpl) LoginUser(ctx *gin.Context) {
 		fmt.Println("Email dan Password Salah")
 	}
 
-	
-	response := helper.ApiResponse("Account has been registered", http.StatusOK, "success", input.Password)
+	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", input.Password)
 	
 	ctx.JSON(http.StatusOK, response)
 	
+}
+
+func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
+	var input model.CheckEmailAvalible
+	err := ctx.ShouldBindJSON(&input)
+	if err != nil {
+		// errors := helper.FormatValidationError(err)
+		// return
+	}
 }
 
 func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{

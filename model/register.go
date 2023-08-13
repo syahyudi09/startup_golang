@@ -5,6 +5,8 @@ type RegisterUserInput struct{
 	Occupation string
 	Email string
 	Password string
+	Role string
+	Token string
 }
 
 type LoginUser struct{

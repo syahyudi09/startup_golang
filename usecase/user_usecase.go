@@ -25,6 +25,7 @@ func (u *userUsecaseImpl) RegisterUser(register *model.RegisterUserInput) error{
 	user.Name = register.Name
 	user.Email = register.Email
 	user.Occupation = register.Occupation
+	register.Role = "user"
 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.MinCost)
 	if err != nil{
 		return fmt.Errorf("error an userUsecaseImpl.RegisterUser: %w", err)
@@ -62,13 +63,18 @@ func (u *userUsecaseImpl) LoginUser(input *model.LoginUser) error {
 func (u *userUsecaseImpl) IsAvalibleEmail(input *model.CheckEmailAvalible) (bool, error) {
 	email := input.Email
 
+	// mencari email yang di input ketika membuat akun
 	user, err := u.userRepo.FindByEmail(email)
 	if err != nil {
 		return false, err
 	}
-	
-	
-	return true, nil
+
+	// jika tidak ada maka bisa untuk input 
+	if user.ID == 0 {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 
