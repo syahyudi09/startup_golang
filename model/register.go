@@ -1,19 +1,18 @@
 package model
 
 type RegisterUserInput struct{
-	Name string 
-	Occupation string
-	Email string
-	Password string
-	Role string
-	Token string
+	Name string `json:"name" binding:"required"`
+	Occupation string `json:"occupation" binding:"required"`
+	Email string `json:"email" binding:"required,email"`
+	Password string `json:"password" binding:"required"`
+	Role string 
 }
 
 type LoginUser struct{
-	Email string `json:"email"`
-	Password string `json:"password"`
+	Email string `json:"email" binding:"required, email"`
+	Password string `json:"password" binding:"required"`
 }
 
 type CheckEmailAvalible struct {
-	Email string `json:"email"`
+	Email string `json:"email" binding:"required, email"`
 }

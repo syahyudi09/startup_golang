@@ -22,26 +22,23 @@ func (userHandler *userhandlerImpl) RegisterUser(ctx *gin.Context){
 	register := &model.RegisterUserInput{}
 	err := ctx.ShouldBindJSON(&register)
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{
-			"success":      false,
-			"errorMessage": "Invalid data JSON",
-		})
+		errors := helper.FormatValidationError(err)
+		errorMessage := gin.H{"errors": errors}
+		response := helper.APIResponse("Registrasi Account Failed", http.StatusUnprocessableEntity, "error", errorMessage)
+		ctx.JSON(http.StatusUnprocessableEntity,response)
 		return
 	}
 
 	err = userHandler.userUsecase.RegisterUser(register)
 	if err != nil{
 		fmt.Printf("error an  userHandler.userUsecase.RegisterUser: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"success":      false,
-			"errorMessage": "Terjadi kesalahan ketika menyimpan data user",
-		})
+		response := helper.APIResponse("Registrasi Account Failed", http.StatusBadRequest, "error", nil)
+		ctx.JSON(http.StatusInternalServerError, response)
 		return
 	}
 
 	// response dari helper
 	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", register)
-	
 	ctx.JSON(http.StatusOK, response)
 }
 
