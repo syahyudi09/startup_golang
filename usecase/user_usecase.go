@@ -11,7 +11,7 @@ import (
 type Userusecase interface {
 	RegisterUser(*model.RegisterUserInput) error
 	LoginUser(*model.LoginUser) error
-	IsAvalibleEmail(input *model.CheckEmailAvalible) (bool, error)
+	IsAvailableEmail(input *model.CheckEmailAvailable) (bool, error)
 }
 
 type userUsecaseImpl struct {
@@ -60,7 +60,7 @@ func (u *userUsecaseImpl) LoginUser(input *model.LoginUser) error {
 }
 
 // untuk mengecek apakah email yang didaftarkan sudah ada apa belum
-func (u *userUsecaseImpl) IsAvalibleEmail(input *model.CheckEmailAvalible) (bool, error) {
+func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bool, error) {
 	email := input.Email
 
 	// mencari email yang di input ketika membuat akun
@@ -76,7 +76,6 @@ func (u *userUsecaseImpl) IsAvalibleEmail(input *model.CheckEmailAvalible) (bool
 
 	return false, nil
 }
-
 
 func NewUserUsecase(repo repo.UserRepo) Userusecase{
 	return &userUsecaseImpl{

@@ -29,17 +29,17 @@ func (u *userRepoImpl) RegisterUser(user *model.UserModel) error{
 	return nil
 }
 
-// mencari user berdasarkan email
 func (u *userRepoImpl) FindByEmail(email string) (*model.UserModel, error) {
+	query := "SELECT id, name, email FROM users WHERE email = $1"
+	row := u.db.QueryRow(query, email)
 
-	query := utils.FIND_BY_EMAIL
-
-	var user *model.UserModel
-	err := u.db.QueryRow(query, user.Email)
+	var user model.UserModel
+	err := row.Scan(&user.ID, &user.Name, &user.Email)
 	if err != nil {
-		return user, fmt.Errorf("email not found %v", err)
+		return nil, fmt.Errorf("error fetching user by email: %w", err)
 	}
-	return user, nil
+
+	return &user, nil
 }
 
 func NewUserRepo(db *sql.DB) UserRepo{

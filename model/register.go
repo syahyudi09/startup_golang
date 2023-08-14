@@ -13,6 +13,6 @@ type LoginUser struct{
 	Password string `json:"password" binding:"required"`
 }
 
-type CheckEmailAvalible struct {
-	Email string `json:"email" binding:"required, email"`
+type CheckEmailAvailable struct {
+	Email string `json:"email" binding:"required,email"`
 }
