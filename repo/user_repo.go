@@ -51,7 +51,7 @@ func (u *userRepoImpl) GetUserByID(id int) (model.UserModel, error) {
 	var user model.UserModel
 	err := row.Scan(user.ID)
 	if err != nil {
-		return user, fmt.Errorf("Error an userRepoImpl.GetUserById %d", err)
+		return user, fmt.Errorf("error an userRepoImpl.GetUserById %d", err)
 	}
 
 	return user, nil
@@ -60,13 +60,13 @@ func (u *userRepoImpl) GetUserByID(id int) (model.UserModel, error) {
 func (u *userRepoImpl) UpdateAvatar(id int, cust *model.UserModel) error {
 	_, err := u.GetUserByID(id)
 	if err != nil {
-		return fmt.Errorf("Error an userRepoImpl.UpdateAvatar %w", err)
+		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
 	}
 
 	query := "UPDATE users SET "
 	_, err = u.db.Exec(query, &cust.AvatarFileName, &cust.ID)
 	if err != nil {
-		return fmt.Errorf("Error an userRepoImpl.UpdateAvatar %w", err)
+		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
 	}
 	return nil
 }
