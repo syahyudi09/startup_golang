@@ -98,6 +98,7 @@ func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
 }
 
 
+
 func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
 	Handler := userhandlerImpl{
 		userUsecase: user,

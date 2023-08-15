@@ -77,6 +77,10 @@ func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bo
 	return false, nil
 }
 
+func (u *userUsecaseImpl) UpdateAvatar(id int, user *model.UserModel) error {
+	return u.userRepo.UpdateAvatar(id, user)
+}
+
 func NewUserUsecase(repo repo.UserRepo) Userusecase{
 	return &userUsecaseImpl{
 		userRepo: repo,

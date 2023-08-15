@@ -57,19 +57,20 @@ func (u *userRepoImpl) GetUserByID(id int) (model.UserModel, error) {
 	return user, nil
 }
 
-func (u *userRepoImpl) UpdateAvatar(id int, cust *model.UserModel) error {
+func (u *userRepoImpl) UpdateAvatar(id int, user *model.UserModel) error {
 	_, err := u.GetUserByID(id)
 	if err != nil {
 		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
 	}
 
-	query := "UPDATE users SET "
-	_, err = u.db.Exec(query, &cust.AvatarFileName, &cust.ID)
+	query := "UPDATE users SET avatar_filename = $1 WHERE id = $2"
+	_, err = u.db.Exec(query, &user.AvatarFileName, &user.ID)
 	if err != nil {
 		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
 	}
 	return nil
 }
+
 func NewUserRepo(db *sql.DB) UserRepo{
 	return &userRepoImpl{
 		db: db,
