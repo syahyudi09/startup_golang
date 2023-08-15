@@ -12,7 +12,7 @@ type UserRepo interface {
 	RegisterUser(*model.UserModel) error
 	FindByEmail(string) (model.UserModel, error)
 	GetUserByID(int) (model.UserModel, error)
-	UpdateAvatar(int, *model.UserModel) error
+	UpdateAvatar(model.UserModel) (model.UserModel, error)
 }
 
 type userRepoImpl struct {
@@ -57,18 +57,13 @@ func (u *userRepoImpl) GetUserByID(id int) (model.UserModel, error) {
 	return user, nil
 }
 
-func (u *userRepoImpl) UpdateAvatar(id int, user *model.UserModel) error {
-	_, err := u.GetUserByID(id)
-	if err != nil {
-		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
-	}
-
+func (u *userRepoImpl) UpdateAvatar(user model.UserModel) (model.UserModel, error) {
 	query := "UPDATE users SET avatar_filename = $1 WHERE id = $2"
-	_, err = u.db.Exec(query, &user.AvatarFileName, &user.ID)
+	_, err := u.db.Exec(query, &user.AvatarFileName, &user.ID)
 	if err != nil {
-		return fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
+		return user, fmt.Errorf("error an userRepoImpl.UpdateAvatar %w", err)
 	}
-	return nil
+	return user, nil
 }
 
 func NewUserRepo(db *sql.DB) UserRepo{

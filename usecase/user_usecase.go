@@ -11,7 +11,8 @@ import (
 type Userusecase interface {
 	RegisterUser(*model.RegisterUserInput) error
 	LoginUser(*model.LoginUser) error
-	IsAvailableEmail(input *model.CheckEmailAvailable) (bool, error)
+	IsAvailableEmail(*model.CheckEmailAvailable) (bool, error)
+	UpdateAvatar(int, string) (model.UserModel, error)
 }
 
 type userUsecaseImpl struct {
@@ -77,8 +78,22 @@ func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bo
 	return false, nil
 }
 
-func (u *userUsecaseImpl) UpdateAvatar(id int, user *model.UserModel) error {
-	return u.userRepo.UpdateAvatar(id, user)
+func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string) (model.UserModel, error) {
+	// mencari id nya terlebih dahulu
+	user, err := u.userRepo.GetUserByID(id)
+	if err != nil {
+		return user, nil
+	}
+
+	user.AvatarFileName = fileLocation
+
+	// simpan foto
+	updateUser, err := u.userRepo.UpdateAvatar(user)
+	if err != nil {
+		return updateUser, nil
+	}
+
+	return updateUser, nil
 }
 
 func NewUserUsecase(repo repo.UserRepo) Userusecase{

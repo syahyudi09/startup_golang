@@ -97,6 +97,46 @@ func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK,response)
 }
 
+func (UserHandler *userhandlerImpl) UploadAvatar(ctx *gin.Context){
+	file, err := ctx.FormFile("avatar")
+	if err != nil {
+		data := gin.H {
+			"is_Uploaded":false,
+		}
+		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
+		ctx.JSON(http.StatusBadRequest, response)
+	}
+
+	// folder untuk menyimpan avatar dan nama file nya 
+	path := "images/" + file.Filename
+
+	err = ctx.SaveUploadedFile(file, path)
+	if err != nil {
+		data := gin.H {
+			"is_Uploaded":false,
+		}
+		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
+		ctx.JSON(http.StatusBadRequest, response)
+	}
+
+	userId := 1
+
+	_, err = UserHandler.userUsecase.UpdateAvatar(userId, path)
+	if err != nil {
+		data := gin.H {
+			"is_Uploaded":false,
+		}
+		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
+		ctx.JSON(http.StatusBadRequest, response)
+	}
+
+	data := gin.H {
+		"is_Uploaded":true,
+	}
+	response := helper.APIResponse("Avatar Successfuly uploaded", http.StatusOK, "success",data)
+	ctx.JSON(http.StatusOK, response)
+
+}
 
 
 func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
@@ -108,7 +148,7 @@ func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
 	srv.POST("/register", Handler.RegisterUser)
 	srv.POST("/login", Handler.LoginUser)
 	srv.POST("/email_chekers", Handler.CheckEmailAvalible)
-	
+	srv.POST("/avatars", Handler.UploadAvatar)
 
 	return Handler
 }
