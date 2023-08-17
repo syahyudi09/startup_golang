@@ -1,11 +1,12 @@
-	package handler
+package handler
 
-	import (
-		"startup/config"
-		"startup/manager"
+import (
+	"startup/config"
+	"startup/manager"
+	"startup/middleware"
 
-		"github.com/gin-gonic/gin"
-	)
+	"github.com/gin-gonic/gin"
+)
 
 	type Server interface {
 		Run()
@@ -27,10 +28,10 @@
 		if err != nil{
 			panic(err)		
 		}
-
+		auth := middleware.NewJwtService()
 		infra := manager.NewInfraManager(config)
 		repo := manager.NewRepomanager(infra)
-		usecase := manager.NewUsecasemanager(repo)
+		usecase := manager.NewUsecasemanager(repo, auth)
 
 		engine := gin.Default()
 

@@ -10,145 +10,161 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type UserHandler interface {
-}
-
-type userhandlerImpl struct {
-	userUsecase usecase.Userusecase
-	srv *gin.Engine
-}
-
-func (userHandler *userhandlerImpl) RegisterUser(ctx *gin.Context){
-	register := &model.RegisterUserInput{}
-	err := ctx.ShouldBindJSON(&register)
-	if err != nil {
-		errors := helper.FormatValidationError(err)
-		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Registrasi Account Failed", http.StatusUnprocessableEntity, "error", errorMessage)
-		ctx.JSON(http.StatusUnprocessableEntity,response)
-		return
+	type UserHandler interface {
 	}
 
-	err = userHandler.userUsecase.RegisterUser(register)
-	if err != nil{
-		fmt.Printf("error an  userHandler.userUsecase.RegisterUser: %v", err)
-		response := helper.APIResponse("Registrasi Account Failed", http.StatusBadRequest, "error", nil)
-		ctx.JSON(http.StatusInternalServerError, response)
-		return
+	type userhandlerImpl struct {
+		userUsecase usecase.Userusecase
+		srv *gin.Engine
 	}
 
-	// response dari helper
-	response := helper.APIResponse("Account has been registered", http.StatusOK, "success", register)
-	ctx.JSON(http.StatusOK, response)
-}
-
-func (userHandler *userhandlerImpl) LoginUser(ctx *gin.Context) {
-	input := &model.LoginUser{}
-	err := ctx.ShouldBindJSON(&input)
-	if err != nil {
-		errors := helper.FormatValidationError(err)
-		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Login Failed", http.StatusUnprocessableEntity, "error", errorMessage)
-		ctx.JSON(http.StatusUnprocessableEntity,response)
-		return
-	}
-
-	err = userHandler.userUsecase.LoginUser(input)
-	if err != nil {
-		errorMessage := gin.H{"errors": err.Error()}
-		response := helper.APIResponse("Login Failed", http.StatusUnprocessableEntity, "error", errorMessage)
-		ctx.JSON(http.StatusUnprocessableEntity,response)
-		return
-	}
-
-	response := helper.APIResponse("Successfuly Login", http.StatusOK, "success", input.Password)
-	ctx.JSON(http.StatusOK, response)
-}
-
-func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
-	var input model.CheckEmailAvailable
-	err := ctx.ShouldBindJSON(&input)
-	if err != nil {
-		errors := helper.FormatValidationError(err)
-		errorMessage := gin.H{"errors": errors}
-		response := helper.APIResponse("Email checking Failed", http.StatusUnprocessableEntity, "error", errorMessage)
-		ctx.JSON(http.StatusUnprocessableEntity,response)
-		return
-	}
-
-	isEmailAvailible, err := UserHandler.userUsecase.IsAvailableEmail(&input)
-	if err != nil {
-		errorMessage := gin.H{"errors": "Server Error"}
-		response := helper.APIResponse("Email checking Failed", http.StatusUnprocessableEntity, "error", errorMessage)
-		ctx.JSON(http.StatusUnprocessableEntity,response)
-		return
-	}
-
-	data := gin.H{
-		"is_available": isEmailAvailible,
-	}
-
-	metaMessage := "Email Telah Terdaftar"
-
-	if isEmailAvailible {
-		metaMessage = "Email Tersedia"
-	}
-	response := helper.APIResponse(metaMessage, http.StatusOK, "success", data)
-	ctx.JSON(http.StatusOK,response)
-}
-
-func (UserHandler *userhandlerImpl) UploadAvatar(ctx *gin.Context){
-	file, err := ctx.FormFile("avatar")
-	if err != nil {
-		data := gin.H {
-			"is_Uploaded":false,
+	func (userHandler *userhandlerImpl) RegisterUser(ctx *gin.Context){
+		register := &model.RegisterUserInput{}
+		err := ctx.ShouldBindJSON(&register)
+		if err != nil {
+			errors := helper.FormatValidationError(err)
+			errorMessage := gin.H{"errors": errors}
+			response := helper.APIResponse("Registrasi Account Failed", http.StatusUnprocessableEntity, "error", errorMessage)
+			ctx.JSON(http.StatusUnprocessableEntity,response)
+			return
 		}
-		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
-		ctx.JSON(http.StatusBadRequest, response)
-	}
 
-	// folder untuk menyimpan avatar dan nama file nya 
-	path := "images/" + file.Filename
-
-	err = ctx.SaveUploadedFile(file, path)
-	if err != nil {
-		data := gin.H {
-			"is_Uploaded":false,
+		err = userHandler.userUsecase.RegisterUser(register)
+		if err != nil{
+			fmt.Printf("error an  userHandler.userUsecase.RegisterUser: %v", err)
+			response := helper.APIResponse("Registrasi Account Failed", http.StatusBadRequest, "error", nil)
+			ctx.JSON(http.StatusInternalServerError, response)
+			return
 		}
-		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
-		ctx.JSON(http.StatusBadRequest, response)
+
+		// response dari helper
+		response := helper.APIResponse("Account has been registered", http.StatusOK, "success", register)
+		ctx.JSON(http.StatusOK, response)
 	}
 
-	userId := 1
-
-	_, err = UserHandler.userUsecase.UpdateAvatar(userId, path)
-	if err != nil {
-		data := gin.H {
-			"is_Uploaded":false,
+	func (userHandler *userhandlerImpl) LoginUser(ctx *gin.Context) {
+		var input model.LoginUser
+		err := ctx.ShouldBindJSON(&input)
+		if err != nil {
+			errors := helper.FormatValidationError(err)
+			errorMessage := gin.H{"errors": errors}
+			response := helper.APIResponse("Login Failed", http.StatusUnprocessableEntity, "error", errorMessage)
+			ctx.JSON(http.StatusUnprocessableEntity,response)
+			return
 		}
-		response := helper.APIResponse("Failed to Upload avatar image", http.StatusBadRequest, "error",data)
-		ctx.JSON(http.StatusBadRequest, response)
+
+		token, err := userHandler.userUsecase.LoginUser(input)
+		if err != nil {
+			errorMessage := gin.H{"errors": err.Error()}
+			response := helper.APIResponse("Login Failed", http.StatusUnprocessableEntity, "error", errorMessage)
+			ctx.JSON(http.StatusUnprocessableEntity,response)
+			return
+		}
+
+		data := gin.H{
+			"token": token,}
+
+		response := helper.APIResponse("Successfuly Login", http.StatusOK, "success", data)
+		ctx.JSON(http.StatusOK, response)
 	}
 
-	data := gin.H {
-		"is_Uploaded":true,
+	func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
+		var input model.CheckEmailAvailable
+		err := ctx.ShouldBindJSON(&input)
+		if err != nil {
+			errors := helper.FormatValidationError(err)
+			errorMessage := gin.H{"errors": errors}
+			response := helper.APIResponse("Email checking Failed", http.StatusUnprocessableEntity, "error", errorMessage)
+			ctx.JSON(http.StatusUnprocessableEntity,response)
+			return
+		}
+
+		isEmailAvailible, err := UserHandler.userUsecase.IsAvailableEmail(&input)
+		if err != nil {
+			errorMessage := gin.H{
+				"errors": "Server Error",
+			}
+			response := helper.APIResponse(
+				"Email checking Failed", 
+				http.StatusUnprocessableEntity, 
+				"error", 
+				errorMessage,
+			)
+			ctx.JSON(http.StatusUnprocessableEntity,response)
+			return
+		}
+
+		data := gin.H{
+			"is_available": isEmailAvailible,
+		}
+
+		var metaMessage string
+		if isEmailAvailible {
+			metaMessage = "Email Telah Terdaftar"
+		}else{
+			metaMessage = "Email Tersedia"
+		}
+		response := helper.APIResponse(
+			metaMessage, 
+			http.StatusOK, 
+			"success", 
+			data,	)
+		ctx.JSON(http.StatusOK,response)
 	}
-	response := helper.APIResponse("Avatar Successfuly uploaded", http.StatusOK, "success",data)
-	ctx.JSON(http.StatusOK, response)
 
-}
+	func (UserHandler *userhandlerImpl) UploadAvatar(ctx *gin.Context) {
+		file, err := ctx.FormFile("avatar")
+		if err != nil {
+			response := helper.APIResponse("Failed to upload avatar image", http.StatusBadRequest, "error", nil)
+			ctx.JSON(http.StatusBadRequest, response)
+			return
+		}
 
+		// Pastikan file tidak bernilai nil sebelum melanjutkan
+		if file == nil {
+			response := helper.APIResponse("No file uploaded", http.StatusBadRequest, "error", nil)
+			ctx.JSON(http.StatusBadRequest, response)
+			return
+		}
 
-func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
-	Handler := userhandlerImpl{
-		userUsecase: user,
-		srv: srv,
-	}	
+		// Lanjutkan dengan pemrosesan file
+		path := "images/" + file.Filename
 
-	srv.POST("/register", Handler.RegisterUser)
-	srv.POST("/login", Handler.LoginUser)
-	srv.POST("/email_chekers", Handler.CheckEmailAvalible)
-	srv.POST("/avatars", Handler.UploadAvatar)
+		err = ctx.SaveUploadedFile(file, path)
+		if err != nil {
+			response := helper.APIResponse("Failed to upload avatar image", http.StatusInternalServerError, "error", nil)
+			ctx.JSON(http.StatusInternalServerError, response)
+			return
+		}
 
-	return Handler
-}
+		// Mendapatkan ID pengguna dari autentikasi, misalnya menggunakan JWT token
+		userID := 2
+
+		err = UserHandler.userUsecase.UpdateAvatar(userID, path)
+		if err != nil {
+			response := helper.APIResponse("Failed to update avatar", http.StatusInternalServerError, "error", nil)
+			ctx.JSON(http.StatusInternalServerError, response)
+			return
+		}
+
+		data := gin.H{
+			"is_Uploaded": true,
+		}
+
+		response := helper.APIResponse("Avatar successfully uploaded and updated", http.StatusOK, "success", data)
+		ctx.JSON(http.StatusOK, response)
+	}
+
+	func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
+		Handler := userhandlerImpl{
+			userUsecase: user,
+			srv: srv,
+		}	
+
+		srv.POST("/register", Handler.RegisterUser)
+		srv.POST("/login", Handler.LoginUser)
+		srv.POST("/email_chekers", Handler.CheckEmailAvalible)
+		srv.POST("/avatars", Handler.UploadAvatar)
+
+		return Handler
+	}
