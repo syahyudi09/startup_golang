@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"errors"
 	"database/sql"
 	"fmt"
 	"startup/model"
@@ -52,6 +53,10 @@ func (u *userRepoImpl) GetUserByID(id int) (model.UserModel, error) {
 	err := u.db.QueryRow(query, id).Scan(&user.ID)
 	if err != nil {
 		return user, fmt.Errorf("error an userRepoImpl.GetUserById %d", err)
+	}
+
+	if user.ID == 0{
+		return user, errors.New("No user found on with that ID")
 	}
 
 	return user, nil
