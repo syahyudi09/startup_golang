@@ -13,7 +13,7 @@ type UsecaseManager interface {
 type usecaseManager struct {
 	repoManager  RepoManager
 	userUsecase usecase.Userusecase
-	auth middleware.Service
+	auth middleware.AuhtMiddleware
 }
 
 var onceLoadUserUsecase sync.Once
@@ -28,7 +28,7 @@ func (um *usecaseManager) GetUserUsecase() usecase.Userusecase{
 	return um.userUsecase 
 }
 
-func NewUsecasemanager(repo RepoManager, auth middleware.Service) UsecaseManager {
+func NewUsecasemanager(repo RepoManager, auth middleware.AuhtMiddleware) UsecaseManager {
 	return &usecaseManager{
 		repoManager: repo,
 		auth: auth,

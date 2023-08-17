@@ -19,7 +19,7 @@ type Userusecase interface {
 
 type userUsecaseImpl struct {
 	userRepo repo.UserRepo
-	auth middleware.Service
+	auth middleware.AuhtMiddleware
 }
 
 
@@ -173,7 +173,7 @@ func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string) error {
 	}
 	
 
-func NewUserUsecase(repo repo.UserRepo, auth middleware.Service) Userusecase{
+func NewUserUsecase(repo repo.UserRepo, auth middleware.AuhtMiddleware) Userusecase{
 	return &userUsecaseImpl{
 		userRepo: repo,
 		auth: auth,
