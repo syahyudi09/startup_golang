@@ -6,18 +6,18 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-type AuhtMiddleware interface {
+type Auth interface {
 	GenerateToken(userID int) (string, error)
 	ValidateToken(token string) (*jwt.Token, error)
 }
 
-type auhtMiddleware struct {
+type authImpl struct {
 
 }
 
 var SECRET_KEY = []byte("aiofhioahfahfjjflakfjfljjfljlsj")
 
-func (s *auhtMiddleware) GenerateToken(userID int) (string, error) {
+func (s *authImpl)GenerateToken(userID int) (string, error) {
 	claim := jwt.MapClaims{}
 	claim["id"] = userID
 
@@ -32,7 +32,7 @@ func (s *auhtMiddleware) GenerateToken(userID int) (string, error) {
 }
 
 // validate token digunakan agar orang lain tidak bisa membuat jwt token sendri
-func (s *auhtMiddleware) ValidateToken(encodedToken string) (*jwt.Token, error) {
+func (s *authImpl) ValidateToken(encodedToken string) (*jwt.Token, error) {
 	token, err := jwt.Parse(encodedToken, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("invalid Token")
@@ -47,7 +47,6 @@ func (s *auhtMiddleware) ValidateToken(encodedToken string) (*jwt.Token, error) 
 	return token, nil
 }
 
-func NewJwtService() *auhtMiddleware{
-	return &auhtMiddleware{}
+func NewJwtService() Auth {
+	return &authImpl{}
 }
-

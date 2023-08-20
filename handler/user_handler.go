@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"startup/helper"
+	"startup/middleware"
 	"startup/model"
 	"startup/usecase"
 
@@ -68,7 +69,7 @@ import (
 		ctx.JSON(http.StatusOK, response)
 	}
 
-	func (UserHandler *userhandlerImpl) CheckEmailAvalible(ctx *gin.Context) {
+	func (UserHandler *userhandlerImpl) CheckEmailAvailable(ctx *gin.Context) {
 		var input model.CheckEmailAvailable
 		err := ctx.ShouldBindJSON(&input)
 		if err != nil {
@@ -155,16 +156,22 @@ import (
 		ctx.JSON(http.StatusOK, response)
 	}
 
-	func NewUserHandler(srv *gin.Engine,user usecase.Userusecase) UserHandler{
-		Handler := userhandlerImpl{
-			userUsecase: user,
-			srv: srv,
-		}	
+func NewUserHandler(srv *gin.Engine, user usecase.Userusecase) UserHandler {
+	handler := &userhandlerImpl{
+		userUsecase:   user,
+			srv:           srv,
+	}
 
-		srv.POST("/register", Handler.RegisterUser)
-		srv.POST("/login", Handler.LoginUser)
-		srv.POST("/email_chekers", Handler.CheckEmailAvalible)
-		srv.POST("/avatars", Handler.UploadAvatar)
+	auth := middleware.NewJwtService()
+	middleware := NewMiddleware(auth)
 
-		return Handler
+	authenticated := srv.Group("/")
+	authenticated.Use(middleware.AuthMiddleware())
+	
+	srv.POST("/register", handler.RegisterUser)
+	srv.POST("/login", handler.LoginUser)
+	srv.POST("/email_checkers", handler.CheckEmailAvailable)
+	authenticated.POST("/avatars", handler.UploadAvatar)
+	
+		return handler
 	}

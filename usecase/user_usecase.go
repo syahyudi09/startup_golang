@@ -15,28 +15,13 @@ type Userusecase interface {
 	LoginUser(model.LoginUser)(string, error)
 	IsAvailableEmail(*model.CheckEmailAvailable) (bool, error)
 	UpdateAvatar(int, string) error
+	GetUserByID(int) (model.UserModel, error)
 }
 
 type userUsecaseImpl struct {
 	userRepo repo.UserRepo
-	auth middleware.AuhtMiddleware
+	auth middleware.Auth
 }
-
-
-// Registrasi
-// func (u *userUsecaseImpl) RegisterUser(register *model.RegisterUserInput) error{
-// 	user := model.UserModel{}
-// 	user.Name = register.Name
-// 	user.Email = register.Email
-// 	user.Occupation = register.Occupation
-// 	user.Role = register.Role
-// 	passwordHash, err := bcrypt.GenerateFromPassword([]byte(user.PasswordHash), bcrypt.DefaultCost)
-// 	if err != nil{
-// 		return fmt.Errorf("error an userUsecaseImpl.RegisterUser: %w", err)
-// 	}
-// 	user.PasswordHash = string(passwordHash)
-// 	return u.userRepo.RegisterUser(&user)
-// }
 
 func (u *userUsecaseImpl) RegisterUser(register *model.RegisterUserInput) error {
 	user := model.UserModel{}
@@ -64,42 +49,6 @@ func generatePasswordHash(password string) (string , error){
 	}
 	return string(hash), nil
 }
-
-// Login 
-// func (u *userUsecaseImpl) LoginUser(input model.LoginUser) (string, error) {
-// 	email := input.Email
-// 	password := input.Password
-
-// 	// Mencari pengguna berdasarkan email
-// 	user, err := u.userRepo.FindByEmail(email)
-// 	if err != nil {
-// 		return "", fmt.Errorf("failed to find user by email: %w", err)
-// 	}
-
-// 	// Validasi apakah pengguna ditemukan
-// 	if user.ID == 0 {
-// 		return "", errors.New("user not found")
-// 	}
-
-// 	fmt.Println("user.ID:", user.ID)
-// 	fmt.Println("Email:", user.Email)
-// 	fmt.Println("input.Password:", input.Password)
-
-// 	// Membandingkan password
-// 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		return "", fmt.Errorf(err.Error())
-// 	}
-
-// 	// Menghasilkan token
-// 	token, err := u.auth.GenerateToken(user.ID)
-// 	if err != nil {
-// 		return "", fmt.Errorf("failed to generate token: %w", err)
-// 	}
-
-// 	return token, nil
-// }
 
 func (u *userUsecaseImpl) LoginUser(input model.LoginUser) (string, error) {
 	email := input.Email
@@ -135,7 +84,6 @@ func (u *userUsecaseImpl) LoginUser(input model.LoginUser) (string, error) {
 	return token, nil
 }
 
-
 // untuk mengecek apakah email yang didaftarkan sudah ada apa belum
 func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bool, error) {
 	email := input.Email
@@ -153,6 +101,16 @@ func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bo
 
 	return false, nil
 }
+
+func (u *userUsecaseImpl) GetUserByID(userID int) (model.UserModel, error) {
+    user, err := u.userRepo.GetUserByID(userID)
+    if err != nil {
+        // Tangani kesalahan jika terjadi
+        return model.UserModel{}, err
+    }
+    return user, nil
+}
+
 
 func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string) error {
 		// Mencari user dengan ID tertentu
@@ -173,7 +131,7 @@ func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string) error {
 	}
 	
 
-func NewUserUsecase(repo repo.UserRepo, auth middleware.AuhtMiddleware) Userusecase{
+func NewUserUsecase(repo repo.UserRepo, auth middleware.Auth) Userusecase{
 	return &userUsecaseImpl{
 		userRepo: repo,
 		auth: auth,
