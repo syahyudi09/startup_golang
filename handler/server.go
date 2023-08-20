@@ -28,6 +28,8 @@ func (s *serverImpl) Run() {
 	authenticated.Use(middleware.AuthMiddleware())
 
 	NewUserHandler(s.engine, s.usecase.GetUserUsecase())
+	NewCampaignHandler(s.engine, s.usecase.GetCampaignUsecase())
+
 	s.engine.Run(":8080")
 }
 

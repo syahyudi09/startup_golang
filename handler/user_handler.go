@@ -173,5 +173,5 @@ func NewUserHandler(srv *gin.Engine, user usecase.Userusecase) UserHandler {
 	srv.POST("/email_checkers", handler.CheckEmailAvailable)
 	authenticated.POST("/avatars", handler.UploadAvatar)
 	
-		return handler
+	return handler
 	}
