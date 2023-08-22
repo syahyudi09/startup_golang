@@ -15,13 +15,14 @@ type CampaignModel struct {
 	Slug             string
 	CreateAt         time.Time
 	UpdateAt		 time.Time
+	CampaignImages	[]CampaignImages
 }
 
-type CampaignImager struct{
+type CampaignImages struct{
 	ID int
 	CampingID int
 	FileName string
-	IsPrimary int
+	IsPrimary bool
 	CreateAt time.Time
 	UpdateAt time.Time
 }
