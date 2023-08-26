@@ -22,7 +22,7 @@ type CampaignImages struct{
 	ID int
 	CampingID int
 	FileName string
-	IsPrimary bool
+	IsPrimary int
 	CreateAt time.Time
 	UpdateAt time.Time
 }

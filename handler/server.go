@@ -45,6 +45,7 @@ func NewServer() Server {
 	usecase := manager.NewUsecasemanager(repo, auth)
 
 	engine := gin.Default()
+	engine.Static("/images","./images")
 
 	store := cookie.NewStore([]byte(middleware.SECRET_KEY))
 	engine.Use(sessions.Sessions("mysession", store))

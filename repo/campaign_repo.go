@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"startup/model"
+	"startup/utils"
 )
 
 type CampaignRepo interface {
@@ -16,66 +17,72 @@ type campaignRepoImpl struct {
 }
 
 func (cr *campaignRepoImpl) FindAll() ([]*model.CampaignModel, error) {
-	query := "SELECT id, user_id, name, short_description, description, goal_amount, current_amount, perks, backer_count, slug, created_at, updated_at FROM campaign"
+	// query untuk mendapatkan semua data campaign ini berada pada file utils.constant.go
+	query := utils.FIND_CAMPAIGN_ALL
 
+	// untuk melakukan pencarian/pengambilan data pada database
 	rows, err := cr.db.Query(query)
+	// untuk mengecek error
 	if err != nil {
 		return nil, fmt.Errorf("error on campaignRepoImpl.FindAll: %w", err)
 	}
+	/* 
+	jika pengambilan data berhasil atau terjadi error
+	maka akan mengakhiri pencarian atau pengambilan 
+	data dengan defer rows.close dan menutup nya
+	*/
 	defer rows.Close()
 
+	// deklarasi variabel yang bertindak sebagai penampung untuk data campaign
 	var arryCampaign []*model.CampaignModel
+	// 
 	for rows.Next() {
-		campaign := new(model.CampaignModel)
+		campaign := &model.CampaignModel{}
+		campaignImages := model.CampaignImages{}
 		if err := rows.Scan(
-			&campaign.ID,
-			&campaign.UserID,
-			&campaign.Name,
-			&campaign.ShortDescription,
-			&campaign.Description,
-			&campaign.GoalAmount,
-			&campaign.CurrentAmount,
-			&campaign.Perks,
-			&campaign.BackerCount,
-			&campaign.Slug,
-			&campaign.CreateAt,
-			&campaign.UpdateAt,
+			&campaignImages.CampingID, &campaignImages.FileName, &campaignImages.IsPrimary,
+			&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription,
+			&campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug,
 		); err != nil {
 			return nil, fmt.Errorf("error scanning campaign row: %w", err)
 		}
+		campaign.CampaignImages = append(campaign.CampaignImages, campaignImages)
 		arryCampaign = append(arryCampaign, campaign)
+		
 	}
 	return arryCampaign, nil
 }
 
-func (cr *campaignRepoImpl) FindByID(campaignID int) (*model.CampaignModel, error) {
-	query := `SELECT ci.campaign_id, ci.is_primary, c.id, c.user_id, c.name, c.short_description, c.description, c.goal_amount, c.current_amount, c.perks, c.backer_count, c.slug, c.created_at, c.updated_at FROM campaign AS c JOIN campaign_images AS ci ON c.id = ci.campaign_id WHERE c.id = $1`
-	
-	campaign := &model.CampaignModel{}
+func (cr *campaignRepoImpl) FindByID(userID int) (*model.CampaignModel, error) {
+	query := utils.FIND_CAMPAIGN_BY_ID
 
-	rows, err := cr.db.Query(query, campaignID)
+	rows, err := cr.db.Query(query, userID)
 	if err != nil {
 		return nil, fmt.Errorf("err on campaignRepoImpl.FindByID %w", err)
 	}
 	defer rows.Close()
 
+	campaign := &model.CampaignModel{}
 	for rows.Next() {
 		campaignImages := model.CampaignImages{}
-		err := rows.Scan(
-			&campaignImages.CampingID, &campaignImages.IsPrimary,
-			&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription, &campaign.Description, &campaign.GoalAmount, &campaign.CurrentAmount,
-			&campaign.Perks, &campaign.BackerCount, &campaign.Slug, &campaign.CreateAt, &campaign.UpdateAt,
-			// &campaignImages.FileName, &campaignImages.IsPrimary, &campaignImages.CreateAt, &campaignImages.UpdateAt,
-		)
-		if err != nil {
+		if err := rows.Scan(
+			&campaignImages.CampingID, &campaignImages.FileName, &campaignImages.IsPrimary, 
+			&campaign.ID, &campaign.UserID, &campaign.Name, &campaign.ShortDescription,
+			&campaign.GoalAmount, &campaign.CurrentAmount, &campaign.Slug,
+		); err != nil {
 			return nil, fmt.Errorf("err on campaignRepoImpl.FindByID %w", err)
 		}
 		campaign.CampaignImages = append(campaign.CampaignImages, campaignImages)
 	}
+
+	if campaign.UserID == 0{
+		return nil, nil
+	}
+
 	return campaign, nil
 }
 
-func NewCampaignRepo(db *sql.DB)     CampaignRepo {
+func NewCampaignRepo(db *sql.DB) CampaignRepo {
 	return &campaignRepoImpl{
 		db: db,
 	}

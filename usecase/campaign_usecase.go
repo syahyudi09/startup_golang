@@ -17,7 +17,11 @@ type campaignUsecaseImpl struct {
 }
 
 func (cu *campaignUsecaseImpl) FindByID(userID int) (*model.CampaignModel, error){
-	return cu.campaignRepo.FindByID(userID)
+	campaign, err := cu.campaignRepo.FindByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	return campaign, nil
 }
 
 func (cu *campaignUsecaseImpl) FindAll() ([]*model.CampaignModel, error){
