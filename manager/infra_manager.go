@@ -29,7 +29,6 @@ func (i *infraManagerImpl) InitDB() {
 			panic(err)
 		}
 	})
-	fmt.Println("DB Connected")
 }
 
 func (i *infraManagerImpl) GetDB() *sql.DB {
