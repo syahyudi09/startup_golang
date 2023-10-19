@@ -28,10 +28,6 @@ func (i *infraManagerImpl) InitDB() {
 		if err != nil {
 			panic(err)
 		}
-		err = i.db.Ping() // Check if the database connection is successful
-		if err != nil {
-			panic(err)
-		}
 	})
 	fmt.Println("DB Connected")
 }
