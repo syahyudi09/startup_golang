@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"net/http"
 	"startup/middleware"
 	"strings"
@@ -8,6 +9,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-gonic/gin"
+
 )
 
 // Middleware adalah antarmuka (interface) untuk middleware autentikasi.
@@ -40,9 +42,10 @@ func (m *middlewareImpl) AuthMiddleware() gin.HandlerFunc {
 			stringToken = tokenString[1]
 		}
 
-		// memvalidasi token 
+		// Validasi token
 		token, err := m.auth.ValidateToken(stringToken)
 		if err != nil {
+			fmt.Println(err)
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"message": "Unauthorized",
 			})
@@ -50,8 +53,9 @@ func (m *middlewareImpl) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		_, ok := token.Claims.(jwt.MapClaims)
+		claims, ok := token.Claims.(jwt.MapClaims)
 		if !ok || !token.Valid {
+			fmt.Println(ok)
 			ctx.JSON(http.StatusUnauthorized, gin.H{
 				"message": "Unauthorized",
 			})
@@ -59,9 +63,22 @@ func (m *middlewareImpl) AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Next()
-	}                                    
+		// Ekstrak userID dari token
+		userID, ok := claims["id"].(float64)
+		if !ok {
+			fmt.Println(ok)
+			ctx.JSON(http.StatusUnauthorized, gin.H{
+				"message": "Unauthorized",
+			})
+			ctx.Abort()
+			return
+		}
+
+		// Atur userID dalam konteks Gin
+		ctx.Set("userID", int(userID))
+	}
 }
+
 
 func (m *middlewareImpl) AuthCustomerMiddleware() gin.HandlerFunc {
 	return func(ctx *gin.Context) {

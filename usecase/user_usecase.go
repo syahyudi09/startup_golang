@@ -8,19 +8,20 @@ import (
 	"startup/repo"
 
 	"golang.org/x/crypto/bcrypt"
+
 )
 
 type Userusecase interface {
 	RegisterUser(*model.RegisterUserInput) error
-	LoginUser(model.LoginUser)(string, error)
+	LoginUser(model.LoginUser) (string, error)
 	IsAvailableEmail(*model.CheckEmailAvailable) (bool, error)
-	UpdateAvatar(int, string) error
+	UpdateAvatar(int, string, *model.UserModel) error
 	GetUserByID(int) (model.UserModel, error)
 }
 
 type userUsecaseImpl struct {
 	userRepo repo.UserRepo
-	auth middleware.Auth
+	auth     middleware.Auth
 }
 
 func (u *userUsecaseImpl) RegisterUser(register *model.RegisterUserInput) error {
@@ -28,23 +29,22 @@ func (u *userUsecaseImpl) RegisterUser(register *model.RegisterUserInput) error 
 	user.Name = register.Name
 	user.Email = register.Email
 	user.Occupation = register.Occupation
-	user.Role = register.Role
+	user.Role = "user"
 
 	// Hash password sebelum disimpan ke dalam database
 	passHash, err := generatePasswordHash(register.Password)
-	if err != nil{
+	if err != nil {
 		return fmt.Errorf("err  %w", err)
 	}
 	user.PasswordHash = passHash
-	
 
 	// Simpan pengguna ke dalam database
 	return u.userRepo.RegisterUser(&user)
 }
 
-func generatePasswordHash(password string) (string , error){
+func generatePasswordHash(password string) (string, error) {
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil{
+	if err != nil {
 		return "", nil
 	}
 	return string(hash), nil
@@ -94,7 +94,7 @@ func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bo
 		return false, err
 	}
 
-	// jika tidak ada maka bisa untuk input 
+	// jika tidak ada maka bisa untuk input
 	if user.ID == 0 {
 		return true, nil
 	}
@@ -103,37 +103,33 @@ func (u *userUsecaseImpl) IsAvailableEmail(input *model.CheckEmailAvailable) (bo
 }
 
 func (u *userUsecaseImpl) GetUserByID(userID int) (model.UserModel, error) {
-    user, err := u.userRepo.GetUserByID(userID)
-    if err != nil {
-        // Tangani kesalahan jika terjadi
-        return model.UserModel{}, err
-    }
-    return user, nil
+	user, err := u.userRepo.GetUserByID(userID)
+	if err != nil {
+		return user, nil
+	}
+
+	if user.ID == 0 {
+		return user, errors.New("No user found on with that ID")
+	}
+
+	return user, nil
 }
 
+func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string, user *model.UserModel) error {
+	user.AvatarFileName = fileLocation
 
-func (u *userUsecaseImpl) UpdateAvatar(id int, fileLocation string) error {
-		// Mencari user dengan ID tertentu
-		user, err := u.userRepo.GetUserByID(id)
-		if err != nil {
-			return nil
-		}
-	
-		user.AvatarFileName = fileLocation
-	
-		// Simpan foto dengan memanggil UpdateAvatar dengan pointer user yang diperbarui
-		err = u.userRepo.UpdateAvatar(user)
-		if err != nil {
-			return err
-		}
-	
-		return nil
+	// Simpan foto dengan memanggil UpdateAvatar dengan pointer user yang diperbarui
+	err := u.userRepo.UpdateAvatar(id, user)
+	if err != nil {
+		return err
 	}
-	
 
-func NewUserUsecase(repo repo.UserRepo, auth middleware.Auth) Userusecase{
+	return nil
+}
+
+func NewUserUsecase(repo repo.UserRepo, auth middleware.Auth) Userusecase {
 	return &userUsecaseImpl{
 		userRepo: repo,
-		auth: auth,
+		auth:     auth,
 	}
 }
